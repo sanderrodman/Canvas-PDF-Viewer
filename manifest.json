@@ -1,0 +1,22 @@
+{
+  "name": "Canvas PDF Viewer",
+  "description": "Opens any PDF from Canvas in a new tab",
+  "version": "1.0",
+  "manifest_version": 3,
+
+  "action": {
+    "default_popup": "Canvas-PDF-Viewer.html",
+    "default_icon": "Canvas-PDF-Viewer.png"
+  },
+
+  "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+      "matches": [
+        "https://developer.chrome.com/docs/extensions/*",
+        "https://developer.chrome.com/docs/webstore/*",
+        "https://*.edu/courses/*/files/*"
+      ]
+    }
+  ]
+}
