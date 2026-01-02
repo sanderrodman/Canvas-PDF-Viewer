@@ -6,11 +6,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const response = await chrome.runtime.sendMessage({ action: "getPopupData" });
         
         if (!response || !response.path || !response.pdfUrl) {
-            console.log("No file detected yet.");
+   
             return;
         }
 
         const { path, pdfUrl } = response;
+
         pdfButton.classList.remove("hidden");
 
         const items = await chrome.downloads.search({ url: pdfUrl, exists: true, limit: 1 });
