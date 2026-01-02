@@ -1,6 +1,7 @@
 {
   "name": "Canvas File Manager",
-  "description": "Stop cluttering Downloads. This extension detects Canvas files you've opened and views them instantly, preventing duplicate downloads.",
+  
+  "description": "Stop cluttering Downloads. This extension manages Canvas files you download and views them fast, preventing duplicate downloads.",
   "version": "1.0",
   "manifest_version": 3,
 
