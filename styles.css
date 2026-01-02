@@ -1,38 +1,62 @@
-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    transition: background-color 0.2s ease;
-
-    width: 100%;
-    margin: 5px 0px 5px 0px;
+body {
+    min-width: 200px;
+    padding: 0px 8px 0px 8px;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8f9fa;
 }
+
+button {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px 15px;
+    
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    transition: background-color 0.2s ease, transform 0.1s active;
+}
+
 #pdf-button {
     background-color: #007bff;
 }
+
 #pdf-button:hover {
     background-color: #0056b3;
 }
+
+#pdf-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
 #refresh-button {
-    background-color: red;
+    background-color: #dc3545;
 }
+
 #refresh-button:hover {
-    background-color: lightcoral;
+    background-color: #bb2d3b;
 }
+
 p {
-    width: 100%;
-    margin: 5px 0px 5px 0px;
+    margin: 10px 0;
+    font-size: 13px;
+    color: #333;
     text-align: center;
+    line-height: 1.4;
 }
-html {
-    width: max-content;
-    height: max-content;
-}
+
 .hidden { 
     display: none !important;
+}
+
+button:active {
+    transform: scale(0.98);
 }

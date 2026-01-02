@@ -30,14 +30,11 @@
   },
 
   "host_permissions": [
-    "https://*.edu/courses/*/files/*?module_item_id=*",
-    "https://*.edu/courses/*/files?preview=*",
-    "https://*.edu/courses/*/files/folder/*?preview=*"
+    "https://*.edu/courses/*"
   ],
 
   "permissions": [
     "activeTab",
-    "nativeMessaging",
     "downloads",
     "downloads.open"
   ]

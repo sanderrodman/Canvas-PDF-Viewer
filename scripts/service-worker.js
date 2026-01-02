@@ -21,18 +21,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         return true;
     }
-});
 
-let cachedFileData = null;
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.action === "CANVAS_TARGET_FOUND") {
-        cachedFileData = msg.data;
+    if (message.action === "getContentData") {
+        cachedFileData = message.data;
         chrome.action.openPopup();
     }
 
     // When popup opens, it can ask for the cached data
-    if (msg.action === "getFileInfo") {
+    if (message.action === "getPopupData") {
         sendResponse(cachedFileData);
+    }
+});
+
+let cachedFileData = null;
+
+async function notifyTab(tabId) {
+    try {
+        const tab = await chrome.tabs.get(tabId);
+        if (tab.url?.includes(".edu/courses/")) {
+            // Check if tab is fully loaded before messaging
+            if (tab.status === 'complete') {
+                await chrome.tabs.sendMessage(tabId, { action: "tabSwitchCanvas" });
+            }
+        }
+    } catch (e) {}
+}
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+    notifyTab(activeInfo.tabId);
+});
+
+// Also listen for updates
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.status === 'complete') {
+        notifyTab(tabId);
     }
 });
