@@ -1,6 +1,6 @@
 {
   "name": "Canvas File Manager",
-  "description": "Opens any PDF from Canvas in a new tab",
+  "description": "Stop cluttering your Downloads folder. This extension identifies Canvas files you've already accessed and opens them instantly in your browser, preventing duplicate downloads and saving you time.",
   "version": "1.0",
   "manifest_version": 3,
 
@@ -20,7 +20,7 @@
     {
       "js": ["scripts/content.js"],
       "matches": [
-        "https://*.edu/courses/*/files/*"
+        "https://*.edu/courses/*"
       ]
     }
   ],
@@ -30,15 +30,15 @@
   },
 
   "host_permissions": [
-    "https://*.edu/courses/*/files/*"
+    "https://*.edu/courses/*/files/*?module_item_id=*",
+    "https://*.edu/courses/*/files?preview=*",
+    "https://*.edu/courses/*/files/folder/*?preview=*"
   ],
 
   "permissions": [
-    "tabs",
+    "activeTab",
     "nativeMessaging",
     "downloads",
-    "downloads.open",
-    "webNavigation",
-    "scripting"
+    "downloads.open"
   ]
 }

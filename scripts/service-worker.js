@@ -1,61 +1,38 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "downloadFile") {
-        if (!message.url || !message.fileName || !message.course) {
-            sendResponse({ error: "Missing download info" });
+    if (message.action === "getDownloadId") {
+        const path = message.path
+        const pdfUrl = message.pdfUrl
+
+        if (!path || !pdfUrl) {
+            sendResponse({ error: "Missing File info" });
         return;
         }
 
-    const safeCourse = sanitizeName(message.course);
-    const safeFileName = sanitizeName(message.fileName);
-    const path = `Canvas Files/${safeCourse}/${safeFileName}.pdf`;
-
-    chrome.downloads.download(
-        { url: message.url, filename: path, saveAs: false },
-        (downloadId) => {
-        if (chrome.runtime.lastError) {
-            sendResponse({ error: chrome.runtime.lastError.message });
-        } else {
-            sendResponse({ downloadId });
+        chrome.downloads.download(
+            { url: pdfUrl, filename: path, saveAs: false, conflictAction: "overwrite" },
+            (downloadId) => {
+            if (chrome.runtime.lastError) {
+                sendResponse({ error: chrome.runtime.lastError.message });
+            } else {
+                sendResponse({ downloadId });
+            }
         }
-      }
-    );
+        );
 
-    return true; // async response
-  }
+        return true;
+    }
 });
 
-function sanitizeName(name) {
-    return name.replace(/[\/\\:*?"<>|]/g, "-");
-}
+let cachedFileData = null;
 
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.action === "CANVAS_TARGET_FOUND") {
+        cachedFileData = msg.data;
+        chrome.action.openPopup();
+    }
 
-chrome.webNavigation.onCompleted.addListener(() => {
-    chrome.action.openPopup();
-},
-{
-    url: [{urlMatches: "^https://canvas\\.[^/]+\\.edu/courses/.*/files/.*"}]
+    // When popup opens, it can ask for the cached data
+    if (msg.action === "getFileInfo") {
+        sendResponse(cachedFileData);
+    }
 });
-
-
-// chrome.runtime.sendMessage(
-//   { action: "downloadFile", url: pdfUrl, course, fileName },
-//   (response) => {
-//     if (!response || !response.downloadId) {
-//       console.error("Download failed", response?.error);
-//       return;
-//     }
-
-//     const downloadId = response.downloadId;
-
-//     // Wait for download to complete
-//     const listener = (delta) => {
-//       if (delta.id === downloadId && delta.state?.current === "complete") {
-//         chrome.downloads.onChanged.removeListener(listener);
-//         // Open the file after download is finished
-//         chrome.downloads.open(downloadId);
-//       }
-//     };
-
-//     chrome.downloads.onChanged.addListener(listener);
-//   }
-// );

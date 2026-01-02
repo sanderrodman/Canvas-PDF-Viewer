@@ -1,52 +1,59 @@
-// popup.js
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const refreshButton = document.getElementById("refresh-button");
     const pdfButton = document.getElementById("pdf-button");
-    if (!pdfButton) return;
 
-    pdfButton.addEventListener("click", () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tabId = tabs[0].id;
+    try {
+        const response = await chrome.runtime.sendMessage({ action: "getFileInfo" });
+        const { path, pdfUrl } = response;
 
-        // Ask content script for PDF info
-        chrome.tabs.sendMessage(tabId, { action: "getPDFInfo" }, (response) => {
-        if (!response) {
-            console.error("No response from content script");
-            return;
+        if (path && pdfUrl) {
+            pdfButton.classList.remove("hidden");
         }
 
-        const { pdfUrl, course, fileName } = response;
-        if (!pdfUrl || !course || !fileName) {
-            console.error("Missing PDF info:", response);
-            return;
+        const items = await chrome.downloads.search({ url: pdfUrl, exists: true, limit: 1 });
+
+        fileExist = false;
+        if (items.length > 0) {
+            fileExist = true;
+            refreshButton.classList.remove("hidden");
+            pdfButton.textContent = "Open File";
         }
 
-        // Send download request to service worker
-        chrome.runtime.sendMessage(
-            { action: "downloadFile", url: pdfUrl, course, fileName },
-            (response) => {
-                if (!response || !response.downloadId) {
-                    console.error("Download failed", response?.error);
-                return;
+        pdfButton.addEventListener("click", async () => {
+
+            if (fileExist) {
+                chrome.downloads.open(items[0].id);
+            } else {
+                // Start new download via Service Worker
+                const downloadRes = await chrome.runtime.sendMessage({ action: "getDownloadId", path, pdfUrl });
+                if (!downloadRes?.downloadId) throw new Error(downloadRes?.error || "Download failed");
+
+                handleDownloadAndOpen(downloadRes.downloadId);
             }
+        });
 
-            const downloadId = response.downloadId;
-                // Wait for download to complete
-            const listener = (delta) => {
-            if (delta.id === downloadId && delta.state?.current === "complete") {
-                chrome.downloads.onChanged.removeListener(listener);
-                // Open the file after download is finished
-                chrome.downloads.open(downloadId);
-            }
-            };
+        refreshButton.addEventListener("click", async () => {
+            
+            const downloadRes = await chrome.runtime.sendMessage({ action: "getDownloadId", path, pdfUrl });
+            if (!downloadRes?.downloadId) throw new Error(downloadRes?.error || "Download failed");
 
-            chrome.downloads.onChanged.addListener(listener);
+            handleDownloadAndOpen(downloadRes.downloadId);
+        });
 
 
-          }
-        );
-
-
-      });
-    });
-  });
+    } catch (err) {
+        console.error("Extension Error:", err.message);
+    }
 });
+
+
+function handleDownloadAndOpen(downloadId) {
+    const listener = (delta) => {
+        if (delta.id === downloadId && delta.state?.current === "complete") {
+            chrome.downloads.onChanged.removeListener(listener);
+            chrome.downloads.open(downloadId);
+        }
+    };
+    chrome.downloads.onChanged.addListener(listener);
+}
