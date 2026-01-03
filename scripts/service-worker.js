@@ -1,3 +1,5 @@
+let cachedFileData = null;
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "getDownloadId") {
         const path = message.path
@@ -33,8 +35,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-let cachedFileData = null;
-
 async function notifyTab(tabId) {
     try {
         const tab = await chrome.tabs.get(tabId);
@@ -49,11 +49,4 @@ async function notifyTab(tabId) {
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
     notifyTab(activeInfo.tabId);
-});
-
-// Also listen for updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-    if (changeInfo.status === 'complete') {
-        notifyTab(tabId);
-    }
 });

@@ -1,36 +1,28 @@
-function getFileInfo() {
+let lastFileName = null;
+let debounceTimer;
+
+function getFileInfo(domChange) {
+
+    const fileName = document.querySelector("#content > h2")?.textContent 
+                || document.querySelector(".ef-file-preview-header h1")?.textContent
+                || document.querySelector('[data-testid="file-header"] span')?.textContent;
+
+    if (lastFileName === fileName && domChange) {
+        return;
+    }
 
     const pdfUrl = document.querySelector("#content a[download='true']")?.href
                 || document.querySelector(".ef-file-preview-header a")?.href
                 || document.querySelector("#download-icon-button")?.href;
 
-    const fileName = document.querySelector("#content > h2")?.textContent 
-                || document.querySelector(".ef-file-preview-header h1")?.textContent
-                // || document.querySelector("h2[id*='file-preview-title']")?.textContent
-                || document.querySelector('[data-testid="file-header"] span')?.textContent;
-
     const course = document.querySelector("#breadcrumbs ol > li:nth-child(2) a > span")?.textContent;
 
-    if (fileName && lastFileName !== fileName && pdfUrl && course) {
+    if (fileName && pdfUrl && course) {
+        lastFileName = fileName;
         path = sanitizeDownloadPath(`Canvas Files/${(course)}/${(fileName)}`)
-        return {path, pdfUrl};
-    }
-    lastFileName = fileName;
-    return null;
-}
-
-let lastFileName = null;
-
-function checkAndNotify(switchingTabs) {
-
-    const data = getFileInfo();
-
-    if (data) {
-        chrome.runtime.sendMessage({ action: "getContentData", data: data }); 
+        chrome.runtime.sendMessage({ action: "getContentData", data: {path, pdfUrl} }); 
     }
 }
-
-let debounceTimer;
 
 function startObserving() {
     const observer = new MutationObserver(() => {
@@ -39,7 +31,7 @@ function startObserving() {
 
         // Only run the check after 300ms of "silence" from the DOM
         debounceTimer = setTimeout(() => {
-            checkAndNotify(false);
+            getFileInfo(true);
         }, 300); 
     });
 
@@ -48,7 +40,7 @@ function startObserving() {
     // Helper to start logic
     const init = () => {
         observer.observe(document.body, config);
-        checkAndNotify(false);
+        getFileInfo(true);
     };
 
     if (document.readyState === "complete" || document.readyState === "interactive") {
@@ -61,7 +53,7 @@ startObserving();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action == "tabSwitchCanvas") {
-        checkAndNotify(true);
+        getFileInfo(false);
     }
 });
 
